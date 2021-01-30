@@ -2,21 +2,26 @@
 #include <avr/sleep.h>
 #include <avr/power.h>
 #include <avr/wdt.h> //Needed to enable/disable watch dog timer
+#include <EEPROM.h>
 
 #include "config.h"
 #include "colorlib.h"
 #include "modes.h"
+
+// where various data is stored in EEPROM
+#define EEPROM_ADDR_ACTIVE_MODE 0x02 // last active mode
 
 typedef struct ColorShift {
   unsigned int cycleTime; // how long should this shift take
   unsigned char colors[3];
 };
 
+
 int verifyLightLevel = 10; // the light level to set verify route to in the beginning
 volatile int interruptBrightness = 10;
 
 volatile unsigned long modeStartTime = 0; // the millis() time that this mode started at
-volatile int activeMode = 0; // the currently active light show mode.
+volatile byte activeMode = 0; // the currently active light show mode.
 volatile bool isSleeping = false; // whether we are currently in sleep mode
 
 volatile bool inWatchdog = false; // set to true when entering watchdog, set to false when exiting
@@ -37,6 +42,11 @@ unsigned long lastOn = 0;
 // in an "on" state for too long. Such as someone holding down the button when the product
 // is off.
 volatile bool forcedSleep = false;
+
+// used to indicate that the current state should be saved to eeprom
+// this is used a part of system to delay saving the active mode to eeprom
+// by 1s to avoid rapid switching between modes causing wasteful eeprom writes
+volatile bool eepromSaveRequired = false;
 
 int currentColors[3] = {0,0,0}; 
 int ledStates[2] = {0,0};
@@ -83,7 +93,9 @@ void setup() {
   //GIMSK |= _BV(PCINT0);
   sei();                 // enables interrupts
 
-  startMode(MODE_UTILITY_OFF);
+
+  startMode(getLastSavedMode());
+  //startMode(MODE_UTILITY_OFF);
   //startMode(MODE_UTILITY_TEST);
 }
 
@@ -113,10 +125,46 @@ void loop() {
 
 
 /**
+ * Returns the last mode that was on (saved via EEPROM)
+ * or MODE_UTILITY_OFF if no valid mode found.
+ */
+
+byte getLastSavedMode() {
+  byte mode;
+  EEPROM.get(EEPROM_ADDR_ACTIVE_MODE, mode);
+  return mode;
+}
+
+
+/**
+ * Saves the current state of the light to eeprom. Used so that if 
+ * dog manages to momentary cause light to lose power due to loose
+ * battery connection, light will resume previous mode rather than
+ * turn off.
+ */
+
+void saveStateToEeprom() {
+  // if we are off or in a regular (not utility) mode then save the current mode
+  // don't save utility modes as we don't want to start up in utility mode and just
+  // wastes eeprom (which has limited writes)
+  if( activeMode <= LAST_MODE )
+    EEPROM.update(EEPROM_ADDR_ACTIVE_MODE, activeMode);
+}
+
+
+/**
  * Turns on a given light mode and resets it to start from scratch
  */
 
 void startMode( int mode ) {
+
+  // if turning off then immediately save that state to eeprom
+  // else flag it for saving
+  if( mode == MODE_UTILITY_OFF )
+    saveStateToEeprom();
+  else if( mode != activeMode)
+    eepromSaveRequired = true;
+    
   activeMode = mode;
   modeStartTime = millis();
 }
@@ -287,7 +335,19 @@ void runActiveMode() {
 
     case MODE_UTILITY_TEST:
       restartMode = runModeUtilityTest(cycleTime);
-      break;                  
+      break;      
+
+    /// if in unrecognized mode then switch off
+    default:
+      startMode(MODE_UTILITY_OFF);
+      restartMode = true;
+  }
+
+  // To preserve eeprom write cycles, the current mode is only saved if it has been
+  // active for at least a second or one full mode cycle, whichever comes first.
+  if( eepromSaveRequired && (restartMode || cycleTime > 1000) ) {
+    saveStateToEeprom();
+    eepromSaveRequired = false;
   }
 
   if( restartMode )

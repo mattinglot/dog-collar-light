@@ -5,6 +5,9 @@
 // how many modes are available not counting 0/off
 #define MODE_COUNT 3
 
+// id of the last regular mode (not utility modes)
+#define LAST_MODE MODE_COUNT
+
 // if in this mode, we were sleeping and got woke up, mode deterimines whether key
 // press is sufficient to wake up.
 #define MODE_UTILITY_WAKE 10
@@ -12,7 +15,7 @@
 // entry into generic test mode
 #define MODE_UTILITY_TEST 11
 
-// turns off the light
+// turns off the light. Must be 0 for logic to work correctly
 #define MODE_UTILITY_OFF 0
 
 bool runMode0( unsigned long cycleTime );
