@@ -452,9 +452,7 @@ static unsigned long lastInterruptTime = 0;
   static bool inButtonPress = false; // this gets set to true when button position is high
   static unsigned long lastButtonPressStart = 0; // last time button state changed to high
   unsigned long buttonPressDuration = 0; // how long button has been pressed
-  //return;
-  // debounce code via https://forum.arduino.cc/index.php?topic=45000.0
-
+ 
   if( isForcedSleep() )
   {
     if( !ignoreButtonHigh && digitalRead(BUTTON_MODE) == HIGH )
