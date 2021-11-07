@@ -1,0 +1,4 @@
+(sym_lib_table
+  (lib (name mcp1801x-5002ixot)(type Legacy)(uri ${KIPRJMOD}/mcp1801x-5002ixot.lib)(options "")(descr ""))
+  (lib (name Dog-Collar-Light-R1-rescue)(type Legacy)(uri "${KIPRJMOD}/Dog Collar Light R1-rescue.lib")(options "")(descr ""))
+)

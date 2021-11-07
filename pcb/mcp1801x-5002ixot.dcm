@@ -1,0 +1,9 @@
+EESchema-DOCLIB  Version 2.0
+#
+$CMP MCP1801x-5002IxOT
+D 150mA, 28V LDO Regulator With Shutdown, 1.8V Fixed Output, SOT-23-5
+K linear regulator ldo fixed positive
+F http://ww1.microchip.com/downloads/en/DeviceDoc/20002200D.pdf
+$ENDCMP
+#
+#End Doc Library
