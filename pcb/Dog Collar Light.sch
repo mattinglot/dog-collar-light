@@ -412,7 +412,7 @@ L dk_Tactile-Switches:1825910-6 S1
 U 1 1 5E16ADA0
 P 5600 2400
 F 0 "S1" H 5600 2747 60  0000 C CNN
-F 1 "222PJVAAR" H 5600 2641 60  0000 C CNN
+F 1 "222JJVAAR" H 5600 2641 60  0000 C CNN
 F 2 "mi-footprint:Switch_222PJVAAR" H 5800 2600 60  0001 L CNN
 F 3 "https://www.te.com/commerce/DocumentDelivery/DDEController?Action=srchrtrv&DocNm=1825910&DocType=Customer+Drawing&DocLang=English" H 5800 2700 60  0001 L CNN
 F 4 "450-1650-ND" H 5800 2800 60  0001 L CNN "Digi-Key_PN"
